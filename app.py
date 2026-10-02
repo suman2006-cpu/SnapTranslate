@@ -311,23 +311,153 @@ if st.session_state.pending_photo or st.session_state.pending_text:
                 st.session_state.pending_text
             )
 
-        instruction = (
-            f"Translate the provided content into "
-            f"{translation_language}.\n\n"
-            f"Then show that translated result using "
-            f"{display_language}.\n\n"
-            f"The first selection is the actual translation language. "
-            f"The second selection controls how the translated result "
-            f"is displayed.\n\n"
-            f"Do not translate the meaning into the display language "
-            f"again. Preserve the meaning of the translation.\n\n"
-            f"If an image is provided, read and translate its readable "
-            f"text. If text is provided, translate that text. "
-            f"If both are provided, process both.\n\n"
-            f"Preserve names, numbers, dates, prices, measurements, "
-            f"symbols, warnings, and important formatting where possible. "
-            f"Do not invent unreadable text."
-        )
+        instruction = f"""
+            You are performing a translation and display-format task.
+
+            SOURCE CONTENT:
+            The user has provided text and/or an image.
+
+            FIRST DROPDOWN — TARGET TRANSLATION LANGUAGE:
+            {translation_language}
+
+            SECOND DROPDOWN — DISPLAY LANGUAGE:
+            {display_language}
+
+            IMPORTANT:
+            The first dropdown determines the actual language that the content must
+            be translated INTO.
+
+            The second dropdown determines HOW the translated target-language content
+            should be displayed.
+
+            The second dropdown does NOT mean that the translated meaning should be
+            translated again into that language.
+
+            For example:
+
+            Source:
+            "Where are you going?"
+
+            Target Translation Language:
+            Telugu
+
+            If Display Language is:
+            Telugu
+
+            Output:
+            మీరు ఎక్కడికి వెళ్తున్నారు?
+
+            If Display Language is:
+            English
+
+            Output:
+            Meeru ekkadiki veltunnaru?
+
+            In the second case, DO NOT output:
+            "Where are you going?"
+
+            The meaning must remain Telugu. Only the writing/display representation
+            changes.
+
+            ==================================================
+            TEXT INPUT
+            ==================================================
+
+            If the user provides text directly:
+            - Translate that text.
+            - Do not ask for an image.
+            - Do not say that an image is required.
+            - Actually perform the translation.
+
+            ==================================================
+            IMAGE INPUT
+            ==================================================
+
+            If an image is provided:
+            - Carefully read all visible and readable text.
+            - Translate that text into {translation_language}.
+            - Do not invent text that is not visible.
+            - Preserve names, numbers, dates, prices, measurements, warnings,
+            and important instructions.
+
+            ==================================================
+            DISPLAY RULE
+            ==================================================
+
+            The target translation language is:
+            {translation_language}
+
+            The selected display language is:
+            {display_language}
+
+            If the display language is the SAME as the target translation language:
+            → Show the translation using the target language's normal/native script.
+
+            If the display language is ENGLISH and the target translation language
+            is NOT English:
+            → Keep the translation in the TARGET LANGUAGE, but write it using
+            Latin/English letters (Romanized form).
+
+            IMPORTANT:
+            Romanized output is NOT an English translation.
+
+            Example:
+
+            Target language: Telugu
+            Display language: English
+
+            Correct:
+            Meeru ela unnaru?
+
+            Incorrect:
+            How are you?
+
+            Another example:
+
+            Target language: Hindi
+            Display language: English
+
+            Correct:
+            Aap kahan ja rahe hain?
+
+            Incorrect:
+            Where are you going?
+
+            Another example:
+
+            Target language: Japanese
+            Display language: English
+
+            Correct:
+            Arigatou gozaimasu.
+
+            Incorrect:
+            Thank you.
+
+            If the target language and display language are the same:
+            → Use the target language's native script.
+
+            If the target language is English:
+            → Display normal English text regardless of the display selection.
+
+            ==================================================
+            OUTPUT
+            ==================================================
+
+            Return ONLY the completed translation/displayed result.
+
+            Do not explain the process.
+
+            Do not ask the user to upload an image when text has already been
+            provided.
+
+            Do not translate the target-language meaning back into English.
+
+            Do not change the meaning of the translation.
+
+            Preserve names, numbers, dates, prices, measurements, symbols,
+            warnings, and important instructions.
+            """
 
         parts.append(instruction)
 
